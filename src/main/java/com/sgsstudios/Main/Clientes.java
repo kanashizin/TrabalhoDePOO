@@ -1,0 +1,78 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.sgsstudios.Main;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+
+/**
+ *
+ * @author SadBo
+ */
+public class Clientes implements Serializable{
+    
+    private static int registrados;
+    private int id;
+    private String nome = "nenhum";
+    private String cpf = "000000000-00";
+    private ArrayList<Pecas> compras;
+    public static Clientes nenhum = new Clientes("nenhum","000000000-00");
+            
+    public Clientes(String nome, String cpf){
+        //Declaracoes inicias padrao
+        compras = new ArrayList();
+        //Validando CPF
+        if(cpf.length() == 11){
+            
+            this.cpf = cpf;
+            
+        }
+        this.nome = nome;
+        
+    }
+    
+    public Clientes(String nome, String cpf, Pecas peca){
+        //Declaracoes iniciais com a adicicao de uma peca no momento do cadastro
+        compras = new ArrayList();
+        //Adicionando a peca na lista de compras
+        compras.add(peca);
+        if(cpf.length() == 12){
+            
+            this.cpf = cpf;
+            
+        }
+        this.nome = nome;
+        
+    }
+            
+    public int getId() {
+        return id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getCpf() {
+        return cpf;
+    }
+    
+    public void addCompra(Pecas peca){
+        
+        peca.setComprador(this);
+        
+    }
+
+    public ArrayList<Pecas> getCompras() {
+        return compras;
+    }
+    
+    public static void setRegistrados(int newRegistro){
+        
+        registrados = newRegistro;
+        
+    }
+    
+}

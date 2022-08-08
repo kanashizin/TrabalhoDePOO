@@ -1,0 +1,272 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Project/Maven2/JavaApp/src/main/java/${packagePath}/${mainClassName}.java to edit this template
+ */
+
+package com.sgsstudios.Main;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+/**
+ *
+ * @author SadBo
+ */
+public class Main {
+    
+    public static ArrayList<Pecas> estoque;
+    public static ArrayList<Clientes> clientes;
+    private static String barra = "================================";
+    private static boolean running = true;
+    private static Scanner scan;
+            
+    public static void main(String[] args) throws Exception {
+        //Declaracoes Iniciais 
+        estoque = new ArrayList<Pecas>();
+        scan = new Scanner(System.in);
+        clientes = new ArrayList<Clientes>();
+        //Carregando Estoque e Clientes
+        loading();
+        //Looping Principal
+        while(running){
+            try{
+                System.out.println(barra);
+                System.out.println("Bem Vindo a nossa loja de Informatica");
+                System.out.println("1 - Adicionar Peca, 2 - Listar Pecas, 3 - Vender Peca");
+                System.out.println("4 - Sair");
+                System.out.println("Opcao: ");
+                menu(scan.nextInt());
+            }catch(Exception e){System.out.println(barra);System.out.println(e.getMessage());}
+        }
+        //Fim do Looping Principal
+            
+        
+        
+    }
+    
+    private static void menu(int option) throws Exception{
+        //Opcoes do Menu
+        switch(option){
+            //Opcao 1
+            case 1:
+                //Adicionar Pecas ao estoque
+                System.out.println(barra);
+                Pecas temp;
+                
+                //Perguntando Nome
+                String nomeTemp;
+                System.out.println("Insira o nome da peca");
+                nomeTemp = scan.nextLine();
+                nomeTemp = scan.nextLine();
+                System.out.println("Nome: " + nomeTemp);
+                
+                //Perguntando Valor do Produto
+                double valor;
+                System.out.println("Insira o valor da peca");
+                valor = Double.parseDouble(scan.nextLine());
+                System.out.println("Valor: " + valor);
+                
+                //Perguntando Categoria do Produto
+                int categoria;
+                System.out.println("Insira o numero da categoria da peca");
+                System.out.println(barra);
+                System.out.println("1 - Processador, 2 - Placa Mae, 3 - Placa de Video");
+                System.out.println("4 - Fonte, 5 - RAM, 6 - Gabinete, 7 - Acessorio PC");
+                System.out.println("8 - Monitor, 9 - Periferico");
+                categoria = scan.nextInt();
+                System.out.println("Categoria: " + Pecas.getCategoriaString(categoria));
+                
+                //Adicionando no estoque
+                temp = new Pecas(nomeTemp,categoria,valor);
+                System.out.println("Foi adicionada a peca " + temp.getNome());
+                estoque.add(temp);
+                saving();
+                break;
+                
+            //Opcao 2   
+            case 2:
+                //Listar pecas no estoque
+                
+                listarPecas();
+                
+                break;
+            //Opcao 3
+            case 3:
+                //Vender peca
+                //Listando peca pra melhor localizacao do usuario
+                listarPecas();
+                //Perguntando ID do produto a ser vendido
+                System.out.println("Digite o ID da peca a vender: ");
+                int idPeca = scan.nextInt();
+                //Verificando se o id informado esta fora do tamanho da lista de produtos
+                if(idPeca < 0 && idPeca > estoque.size()){
+                    return;
+                }else {
+                   Pecas atual = estoque.get(idPeca);
+                   if(!atual.getComprador().getNome().equalsIgnoreCase("nenhum")){
+                       System.out.println("Essa peça ja foi vendida!");
+                       return;
+                   } 
+                    
+                }
+                
+                //Perguntando nome do cliente a comprar
+                System.out.println("Digite o nome do cliente: ");
+                scan.nextLine();
+                String nomeCliente = scan.nextLine();
+                //Verificando se o nome esta vazio
+                if(nomeCliente == ""){
+                    return;
+                }
+                
+                
+                
+                //Pedindo CPF do comprador
+                System.out.println("Digite o cpf do cliente: ");
+                String cpf = scan.nextLine();
+                if(cpf == ""){
+                    return;
+                }
+                
+                for (int i = 0; i < clientes.size(); i++) {
+                    if (clientes.get(i).getCpf().equalsIgnoreCase(cpf)) {
+                        //Cliente Existente
+                        System.out.println("Esse cliente ja existe");
+                        System.out.println("Adicionando a Peca no cpf dele");
+                        for (int j = 0; j < estoque.size(); j++) {
+                            
+                            if (estoque.get(j).getId() == idPeca) {
+                                //Adicionando peca na conta desse cliente
+                                clientes.get(i).addCompra(estoque.get(j));
+                                saving();
+                                return;
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+                for (int i = 0; i < estoque.size(); i++) {
+                    
+                    if (estoque.get(i).getId() == idPeca) {
+                        
+                        Clientes clienteTemp = new Clientes(nomeCliente,cpf);
+                        clienteTemp.addCompra(estoque.get(i));
+                        clientes.add(clienteTemp);
+                        
+                    }
+                    
+                }
+                
+                break;
+            //Opcao 4
+            case 4:
+                //Sair
+                running = false;
+                //Salvando
+                saving();
+                System.out.println("Ate mais");
+                break;
+            default:
+                //Opcao Incorreta
+                break;
+        }
+        
+    }
+    
+    private static void loading() throws Exception{
+        //Inicio dos bagulhos q ninguem sabe oq faz
+        ObjectInputStream objInput;
+        File file;
+        
+        try{
+        file = new File("clientes.obj");
+        objInput = new ObjectInputStream(new FileInputStream(file));
+        //Final dos bagulhos
+        //Recebendo os objetos clientes lidos
+        Clientes cliente;
+        cliente = (Clientes)objInput.readObject();
+        
+        while(cliente != null){
+            //Salvando os objetos clientes lidos
+            clientes.add(cliente);
+            cliente = (Clientes) objInput.readObject();
+        }
+        //Fechar 
+        objInput.close();
+        }catch(Exception e){
+            //Erro
+            System.out.println(e.getMessage());   
+        }
+        try{
+            //Bagulho q ningum sabe
+        file = new File("pecas.obj");
+        objInput = new ObjectInputStream(new FileInputStream(file));
+        //Final do bagulho
+        
+        //Recebendo objeto Peca
+        Pecas peca;
+        peca = (Pecas) objInput.readObject();
+        
+        while(peca != null){
+            //Adicionando objeto peca no estoque
+            estoque.add(peca);
+            Pecas.setRegistrados(estoque.size());
+            peca = (Pecas) objInput.readObject();
+            
+        }
+        //Fechar Leitor
+        objInput.close();
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
+    
+    private static void saving() throws Exception{
+        //Bagulho ae
+        File file;
+        file = new File("pecas.obj");
+        ObjectOutputStream objOutput = new ObjectOutputStream(new FileOutputStream(file));
+        //Final do bagulho ae
+        
+        //Loopting para escrever os objetos pecas
+        for (int i = 0; i < estoque.size(); i++) {
+            //Escrevendo os objetos
+            objOutput.writeObject(estoque.get(i));
+            
+        }
+        //Bagulho estranho
+        file = new File("clientes.obj");
+        objOutput = new ObjectOutputStream(new FileOutputStream(file));
+        //Fim do baguhlo
+        
+        //Looping para escrever os objetos clientes
+        for (int i = 0; i < clientes.size(); i++) {
+            //Escrevendo os objetos
+            objOutput.writeObject(clientes.get(i));
+            
+        }
+        //Fechar Escritor
+        objOutput.close();
+        
+    }
+    
+    public static void listarPecas(){
+        
+        for (int i = 0; i < estoque.size(); i++) {
+                    
+                    System.out.println(barra);
+                    System.out.println(estoque.get(i).toString());
+                    
+                }
+        
+    }
+    
+}
